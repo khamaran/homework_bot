@@ -16,3 +16,8 @@ class UnsetTokensError(Exception):
 class InvalidResponseAPI(Exception):
     """ Не удается подключиться к API"""
     pass
+
+
+class InvalidResponseError(Exception):
+    """Не верный код ответа."""
+    pass
