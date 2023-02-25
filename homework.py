@@ -40,7 +40,9 @@ HOMEWORK_VERDICTS = {
 logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[StreamHandler(sys.stdout), RotatingFileHandler('my_logger.log', maxBytes=50000000, backupCount=5)])
+    handlers=[StreamHandler(sys.stdout),
+              RotatingFileHandler('my_logger.log',
+                                  maxBytes=50000000, backupCount=5)])
 
 
 def check_tokens():
@@ -48,9 +50,11 @@ def check_tokens():
     for token in (PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID):
         if token is None:
             logging.critical(
-                'Отсутствует обязательная переменная окружения: '
+                'Отсутствует обязательная ',
+                'переменная окружения: '
                 f'"{token}"!')
-    is_all_tokens_present = all([TELEGRAM_TOKEN, PRACTICUM_TOKEN, TELEGRAM_CHAT_ID])
+    is_all_tokens_present = all([TELEGRAM_TOKEN,
+                                 PRACTICUM_TOKEN, TELEGRAM_CHAT_ID])
     if not is_all_tokens_present:
         raise UnsetTokensError('Отсутствует один или несколько токенов.')
 
@@ -72,22 +76,25 @@ def get_api_answer(timestamp):
         response = requests.get(ENDPOINT, headers=HEADERS, params=payload)
     except Exception as error:
         logging.error(f'Ошибка при запросе к основному API: {error}')
-        raise InvalidResponseAPI(f'Ошибка при запросе к основному API: {error}')
+        raise InvalidResponseAPI(f'Ошибка при запросе'
+                                 f' к основному API: {error}')
 
     if response.status_code != HTTPStatus.OK:
-        raise InvalidResponseError(f'Недопустимый статус кода {response.status_code}')
+        raise InvalidResponseError(f'Недопустимый статус '
+                                   f'кода {response.status_code}')
 
     return response.json()
 
 
 def check_response(response):
-    """Проверка ответа API на соответствие документации"""
+    """Проверка ответа API на соответствие документации."""
     if isinstance(response, dict):
         try:
             homeworks = response.get('homeworks')
         except Exception as error:
             logging.error(f'Ошибка при запросе к основному API: {error}')
-            raise InvalidResponseAPI(f'Ошибка при запросе к основному API: {error}')
+            raise InvalidResponseAPI(f'Ошибка при запросе '
+                                     f'к основному API: {error}')
 
         if not isinstance(homeworks, list):
             raise TypeError('Ошибка типа ответа API')
@@ -98,7 +105,7 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """Извлечение информации о конкретной домашней работе, статус этой работы."""
+    """Статус домашней работы."""
     homework_name = homework.get('homework_name')
     if 'homework_name' not in homework:
         raise KeyError('В ответе отсутсвует ключ homework_name')
