@@ -119,12 +119,13 @@ def main():
         try:
             answer = get_api_answer(timestamp)
             check_response(answer)
-            timestamp = answer.get('current_date', timestamp)
             homeworks = answer.get('homeworks')
             for homework in homeworks:
                 homework_status = parse_status(homework)
                 send_message(bot, homework_status)
+            timestamp = answer.get('current_date', timestamp)
         except TelegramMessageError:
+            # Ошибка логгируется и обрабатывается в методе send_message()
             pass
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
