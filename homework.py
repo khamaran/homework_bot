@@ -37,13 +37,6 @@ HOMEWORK_VERDICTS = {
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
 }
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[StreamHandler(sys.stdout),
-              RotatingFileHandler('my_logger.log',
-                                  maxBytes=50000000, backupCount=5)])
-
 
 def check_tokens():
     """Проверка доступности необходимых токенов."""
@@ -107,7 +100,7 @@ def check_response(response):
 def parse_status(homework):
     """Статус домашней работы."""
     homework_name = homework.get('homework_name')
-    if 'homework_name' not in homework:
+    if not homework_name:
         raise KeyError('В ответе отсутсвует ключ homework_name')
     homework_status = homework.get('status')
     if homework_status not in HOMEWORK_VERDICTS:
@@ -121,22 +114,33 @@ def main():
     check_tokens()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     timestamp = int(time.time())
-
+    last_exception = None
     while True:
         try:
             answer = get_api_answer(timestamp)
             check_response(answer)
+            timestamp = answer.get('current_date', timestamp)
             homeworks = answer.get('homeworks')
             for homework in homeworks:
                 homework_status = parse_status(homework)
                 send_message(bot, homework_status)
+        except TelegramMessageError:
+            pass
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            send_message(bot, message)
+            if last_exception != message:
+                send_message(bot, message)
             logging.error(message)
+            last_exception = message
         finally:
             time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        handlers=[StreamHandler(sys.stdout),
+                  RotatingFileHandler('my_logger.log',
+                                      maxBytes=50000000, backupCount=5)])
     main()
